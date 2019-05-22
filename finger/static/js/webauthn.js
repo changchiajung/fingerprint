@@ -1,563 +1,298 @@
-/*
- * Copyright 2017 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+function b64enc(buf) {
+    return base64js.fromByteArray(buf)
+                   .replace(/\+/g, "-")
+                   .replace(/\//g, "_")
+                   .replace(/=/g, "");
+}
+
+function b64RawEnc(buf) {
+    return base64js.fromByteArray(buf)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function hexEncode(buf) {
+    return Array.from(buf)
+                .map(function(x) {
+                    return ("0" + x.toString(16)).substr(-2);
+				})
+                .join("");
+}
+
+async function fetch_json(url, options) {
+    const response = await fetch(url, options);
+    const body = await response.json();
+    if (body.fail)
+        throw body.fail;
+    return body;
+}
+
+/**
+ * REGISTRATION FUNCTIONS
  */
 
-const $ = q => {
-  return document.querySelector(q);
-};
+/**
+ * Callback after the registration form is submitted.
+ * @param {Event} e 
+ */
+const didClickRegister = async (e) => {
+    e.preventDefault();
 
-const show = q => {
-  $(q).style.display = 'block';
-};
+    // gather the data in the form
+    const form = document.querySelector('#register-form');
+    const formData = new FormData(form);
 
-const hide = q => {
-  $(q).style.display = 'none';
-};
-
-const isChecked = q => {
-  return $(q).checked;
-};
-
-const onClick = (q, func) => {
-  $(q).addEventListener('click', func);
-};
-
-const onCheck = (q, on, off) => {
-  $(q).addEventListener('change', () => {
-    if($(q).checked) {
-      on();
-    } else {
-      off();
-    }
-  });
-}
-
-function showErrorMsg(msg) {
-  $('#snack-bar').MaterialSnackbar.showSnackbar({
-    message: msg,
-    timeout: 5000
-  });
-};
-
-function showSuccessMsg(msg) {
-  $('#snack-bar').MaterialSnackbar.showSnackbar({
-    message: msg,
-    timeout: 5000
-  });
-};
-
-function _fetch(url, obj) {
-  let headers = new Headers({
-    'Content-Type': 'application/x-www-form-urlencoded'
-  });
-  let body;
-  if (typeof URLSearchParams === "function") {
-    body = new URLSearchParams();
-    for (let key in obj) {
-      body.append(key, obj[key]);
-    }
-    // Set body to string value to handle an Edge case
-    body = body.toString();
-  } else {
-    // Add parameters to body manually if browser doesn't support URLSearchParams
-    body = "";
-    for (let key in obj) {
-      body += encodeURIComponent(key) + "=" + encodeURIComponent(obj[key]) + "&";
-    }
-  }
-  return fetch(url, {
-    method: 'POST',
-    headers: headers,
-    credentials: 'include',
-    body: body
-  }).then(response => {
-    if (response.status === 200) {
-      return response.json();
-    } else {
-      throw response.statusText;
-    }
-  });
-};
-
-
-function fetchCredentials() {
-  _fetch('/RegisteredKeys').then(response => {
-    let credentials = '';
-    for (let i in response) {
-      let { handle, base64handle, publicKey, name, date, id, transports } = response[i];
-      const trimmedHandle = base64handle.replace(/=/g, '');
-      let buttonId = `delete${i}`;
-      credentials +=
-        `<div class="mdl-cell mdl-cell--1-offset-desktop mdl-cell-4-col">
-           <div class="mdl-card mdl-shadow--4dp" id="${handle}">
-             <div class="mdl-card__title mdl-card--border">
-                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-${trimmedHandle}">
-                  <input type="checkbox" id="switch-${trimmedHandle}" class="mdl-switch__input" checked>
-                  <span class="mdl-switch__label">${name}</span>
-                </label>
-             </div>
-             <div class="mdl-card__supporting-text">Enrolled ${date}</div>
-             <div class="mdl-card__subtitle-text">Public Key</div>
-             <div class="mdl-card__supporting-text">${publicKey}</div>
-             <div class="mdl-card__subtitle-text">Key Handle</div>
-             <div class="mdl-card__supporting-text">${handle}</div>`;
-      if (transports) {
-        credentials +=
-          `<div class="mdl-card__subtitle-text">Transports</div>
-          <div class="mdl-card__supporting-text">`;
-        for (const transport of transports) {
-          credentials += `<input type="checkbox" id="${transport}${trimmedHandle}" value="${transport}${trimmedHandle}" checked>${transport} &nbsp;`;
-        }
-        credentials += `</div>`;
-      }
-      credentials +=
-            `<div class="mdl-card__menu">
-               <button id="${buttonId}"
-                 class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect"
-                 title="Removes this credential registration from the server"
-                 >
-                 <i class="material-icons">delete_forever</i>
-               </button>
-             </div>
-           </div>
-         </div>
-        `;
-    }
-    $('#credentials').innerHTML = credentials;
-
-    componentHandler.upgradeAllRegistered();
-
-    for (let i in response) {
-      let { handle, base64handle, publicKey, name, date, id } = response[i];
-      const trimmedHandle = base64handle.replace(/=/g, '');
-      onClick(`#delete${i}`, removeCredential(id));
-      onCheck(`#switch-${trimmedHandle}`, brightenCard(handle), dimCard(handle));
-    }
-  });
-}
-
-function brightenCard(id) {
-  return () => {
-    let card = document.getElementById(id);
-    card.animate([{
-      backgroundColor: '#ADADAD'
-    },{
-      backgroundColor: 'white'
-    }], {
-      duration: 200,
-      easing: 'ease-out',
-      fill: 'forwards'
-    });
-  }
-}
-
-function dimCard(id) {
-  return () => {
-    let card = document.getElementById(id);
-    card.animate([{
-      backgroundColor: 'white'
-    },{
-      backgroundColor: '#ADADAD'
-    }], {
-      duration: 200,
-      easing: 'ease-out',
-      fill: 'forwards'
-    });
-  }
-}
-
-function removeCredential(id) {
-  return () => {
-    _fetch('/RemoveCredential', {
-      credentialId : id
-    }).then(() => {
-      fetchCredentials();
-    }).catch(err => {
-      showErrorMsg(`An error occurred during removal [${err.toString()}]`);
-    });
-  }
-}
-
-function credentialListConversion(list) {
-  // Filter unchecked credentials
-  const filteredList = list.filter((element) => {
+    // post the data to the server to generate the PublicKeyCredentialCreateOptions
+    let credentialCreateOptionsFromServer;
     try {
-      const base64Id = '#switch-'.concat(element.id.replace(/\+/g, '-')
-          .replace(/\//g,'_').replace(/=/g,'')).replace(/=/g, '');
-      if (isChecked(base64Id)) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch(e) {
-      return true;
-    }
-  });
-
-  return filteredList.map(item => {
-    const cred = {
-      type: item.type,
-      id: strToBin(item.id)
-    };
-    if (item.transports) {
-      const newTransportList = [];
-      // Filter out unchecked transports
-      for (transport of item.transports) {
-        try {
-          // The transport id is the transport name concatenated with the
-          // corresponding key handle
-          const base64Id = '#'.concat(transport, item.id.replace(/\+/g, '-')
-              .replace(/\//g,'_').replace(/=/g,''));
-          if (isChecked(base64Id)) {
-            newTransportList.push(transport);
-          }
-        } catch(e) {};
-      }
-      if (newTransportList.length) {
-        cred.transports = newTransportList;
-      }
-    }
-    return cred;
-  });
-}
-
-function registerNewCredential() {
-  const advancedOptions = {};
-  if (isChecked('#switch-rk')) {
-    advancedOptions.requireResidentKey = isChecked('#switch-rk');
-  }
-  if (isChecked('#switch-rr')) {
-    advancedOptions.excludeCredentials = isChecked('#switch-rr');
-  }
-  if ($('#userVerification').value != "none") {
-    advancedOptions.userVerification = $('#userVerification').value;
-  }
-  if ($('#attachment').value != "none") {
-    advancedOptions.authenticatorAttachment = $('#attachment').value;
-  }
-  if ($('#conveyance').value != "NA") {
-    advancedOptions.attestationConveyancePreference = $('#conveyance').value;
-  }
-  makeCredential(advancedOptions);
-}
-
-function registerPlatformAuthenticator() {
-  const advancedOptions = {};
-  if (isChecked('#switch-rk')) {
-    advancedOptions.requireResidentKey = isChecked('#switch-rk');
-  }
-  if (isChecked('#switch-rr')) {
-    advancedOptions.excludeCredentials = isChecked('#switch-rr');
-  }
-  advancedOptions.userVerification = 'required';
-  advancedOptions.authenticatorAttachment = 'platform';
-  if ($('#conveyance').value != "NA") {
-    advancedOptions.attestationConveyancePreference = $('#conveyance').value;
-  }
-  makeCredential(advancedOptions);
-}
-
-function makeCredential(advancedOptions) {
-  show('#active');
-
-  let _options;
-
-  return _fetch('/BeginMakeCredential', {
-    advanced: true,
-    advancedOptions: JSON.stringify(advancedOptions)
-
-  }).then(options => {
-    const makeCredentialOptions = {};
-    _options = options;
-
-    makeCredentialOptions.rp = options.rp;
-    makeCredentialOptions.user = options.user;
-    makeCredentialOptions.user.id = strToBin(options.user.id);
-    makeCredentialOptions.challenge = strToBin(options.challenge);
-    makeCredentialOptions.pubKeyCredParams = options.pubKeyCredParams;
-
-    // Optional parameters
-    if ($('#customTimeout').value != '') {
-      makeCredentialOptions.timeout = $('#customTimeout').value;
-    }
-    if ('excludeCredentials' in options) {
-      makeCredentialOptions.excludeCredentials = credentialListConversion(options.excludeCredentials);
-    }
-    if ('authenticatorSelection' in options) {
-      makeCredentialOptions.authenticatorSelection = options.authenticatorSelection;
-    }
-    if ('attestation' in options) {
-      makeCredentialOptions.attestation = options.attestation;
-    }
-    if ('extensions' in options) {
-      makeCredentialOptions.extensions = options.extensions;
-      if (makeCredentialOptions.extensions.cableRegistration) {
-        makeCredentialOptions.extensions.cableRegistration.rpPublicKey =
-          strToBin(makeCredentialOptions.extensions.cableRegistration.rpPublicKey);
-      }
+        credentialCreateOptionsFromServer = await getCredentialCreateOptionsFromServer(formData);
+    } catch (err) {
+        return console.error("Failed to generate credential request options:", credentialCreateOptionsFromServer)
     }
 
-    console.log('sending attestation request:');
-    console.log(makeCredentialOptions);
-  
-    if ($('#abortTimeout').value != '') {
-      authAbortController = new AbortController();
-      authAbortSignal = authAbortController.signal;
-      setTimeout(function(){ authAbortController.abort(); }, $('#abortTimeout').value);
-      return navigator.credentials.create({
-        "publicKey": makeCredentialOptions,
-        "signal": authAbortSignal
-      });
-    }
-    return navigator.credentials.create({
-      "publicKey": makeCredentialOptions
-    });
-
-  }).then(attestation => {
-    hide('#active');
-    console.log('received attestation response:');
-    console.log(attestation);
-
-    if ($('#abortTimeout').value != '') {
-      clearTimeout();
-    }
-
-    const publicKeyCredential = {};
-
-    if ('id' in attestation) {
-      publicKeyCredential.id = attestation.id;
-    }
-    if ('type' in attestation) {
-      publicKeyCredential.type = attestation.type;
-    }
-    if ('rawId' in attestation) {
-      publicKeyCredential.rawId = binToStr(attestation.rawId);
-    }
-    if (!attestation.response) {
-      showErrorMsg("Make Credential response lacking 'response' attribute");
-    }
-
-    const response = {};
-    response.clientDataJSON = binToStr(attestation.response.clientDataJSON);
-    response.attestationObject = binToStr(attestation.response.attestationObject);
-
-    // Check for included extensions
-    if (attestation.getClientExtensionResults) {
-      publicKeyCredential.extensions = attestation.getClientExtensionResults();
-    }
-
-    // Check if transports are included in the registration response.
-    if (attestation.response.getTransports) {
-      response.transports = attestation.response.getTransports();
-    }
-
-    publicKeyCredential.response = response;
-
-    return _fetch('/FinishMakeCredential', {
-      data: JSON.stringify(publicKeyCredential),
-      session: _options.session.id
-    });
-
-  }).then(parameters => {
-    console.log(parameters);
-
-    if (parameters && parameters.success) {
-      showSuccessMsg(parameters.message);
-      fetchCredentials();
-    } else {
-      throw 'Unexpected response received.';
-    }
-
-  }).catch(err => {
-    hide('#active');
-    console.log(err.toString());
-    showErrorMsg(`An error occurred during Make Credential operation [${err.toString()}]`);
-  });
-}
-
-function isUVPAA() {
-  try {
-    eval(PublicKeyCredential);
-  } catch(err) {
-    showErrorMsg(`UVPAA failed: [${err.toString()}]`);
-    return;
-  }
-  if (PublicKeyCredential &&
-      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(response => {
-      if (response === true) {
-        showSuccessMsg(`User verifying platform authenticator is available.`);
-      } else {
-        showErrorMsg(`User verifying platform authenticator is NOT available.`);
-      }
-    }).catch(err => {
-      showErrorMsg(`UVPAA failed: [${err.toString()}]`);
-    });
-  } else {
-    showErrorMsg(`User verifying platform authenticator is not available on this browser.`);
-  }
-}
-
-function getAssertion() {
-  show('#active');
-
-  let _parameters;
-  _fetch('/BeginGetAssertion').then(parameters => {
-    const requestOptions = {};
-    _parameters = parameters;
-
-    requestOptions.challenge = strToBin(parameters.challenge);
-    if ($('#customTimeout').value != '') {
-      requestOptions.timeout = $('#customTimeout').value;
-    }
-    if ('rpId' in parameters) {
-      requestOptions.rpId = parameters.rpId;
-    }
-    if ('allowCredentials' in parameters) {
-      requestOptions.allowCredentials = credentialListConversion(parameters.allowCredentials);
-    }
-    if ($('#userVerification').value != "none") {
-      requestOptions.userVerification = $('#userVerification').value;
-    }
-    if ('extensions' in parameters) {
-      requestOptions.extensions = {};
-      let cableData = [];
-      if ('cableAuthentication' in parameters.extensions) {
-        for (cableElement of parameters.extensions.cableAuthentication){
-          let cableExtension = {
-              'version': cableElement.version,
-              'clientEid': strToBin(cableElement.clientEid),
-              'authenticatorEid': strToBin(cableElement.authenticatorEid),
-              'sessionPreKey': strToBin(cableElement.sessionPreKey),
-          };
-          cableData.push(cableExtension);
-        }
-        requestOptions.extensions['cableAuthentication'] = cableData;
-      }
-    }
-
-    console.log('sending assertion request:');
-    console.log(requestOptions);
-
-    if ($('#abortTimeout').value != '') {
-      authAbortController = new AbortController();
-      authAbortSignal = authAbortController.signal;
-      setTimeout(function(){ authAbortController.abort(); }, $('#abortTimeout').value);
-      return navigator.credentials.get({
-        "publicKey": requestOptions,
-        "signal": authAbortSignal
-      });
-    }
-
-    return navigator.credentials.get({
-      "publicKey": requestOptions
-    });
-
-  }).then(assertion => {
-    hide('#active');
-
-    if ($('#abortTimeout').value != '') {
-      clearTimeout();
-    }
-
-    console.log('received assertion response:');
-    console.log(assertion);
-
-    const publicKeyCredential = {};
-
-    if ('id' in assertion) {
-      publicKeyCredential.id = assertion.id;
-    }
-    if ('type' in assertion) {
-      publicKeyCredential.type = assertion.type;
-    }
-    if ('rawId' in assertion) {
-      publicKeyCredential.rawId = binToStr(assertion.rawId);
-    }
-    if (!assertion.response) {
-      throw "Get assertion response lacking 'response' attribute";
-    }
-
-    const _response = assertion.response;
-
-    publicKeyCredential.response = {
-      clientDataJSON:     binToStr(_response.clientDataJSON),
-      authenticatorData:  binToStr(_response.authenticatorData),
-      signature:          binToStr(_response.signature),
-      userHandle:         binToStr(_response.userHandle)
-    };
-
-    return _fetch('/FinishGetAssertion', {
-      data: JSON.stringify(publicKeyCredential),
-      session: _parameters.session.id
-    });
-
-  }).then(result => {
-    console.log(result);
-
-    if (result && result.success) {
-      showSuccessMsg(result.message);
-      if ('handle' in result) {
-        let card = document.getElementById(result.handle);
-        let prevColor =
-          getComputedStyle(card).backgroundColor;
-        card.animate([{
-          backgroundColor: '#009688'
-        },{
-          backgroundColor: prevColor
-        }], {
-          duration: 2000,
-          easing: 'ease-out'
+    // convert certain members of the PublicKeyCredentialCreateOptions into
+    // byte arrays as expected by the spec.
+    const publicKeyCredentialCreateOptions = transformCredentialCreateOptions(credentialCreateOptionsFromServer);
+    
+    // request the authenticator(s) to create a new credential keypair.
+    let credential;
+    try {
+        publicKeyCredentialCreateOptions.pubKeyCredParams=[publicKeyCredentialCreateOptions.pubKeyCredParams[0]]
+        console.log(publicKeyCredentialCreateOptions)
+        credential = await navigator.credentials.create({
+            publicKey: publicKeyCredentialCreateOptions
         });
-      }
+    } catch (err) {
+        return console.error("Error creating credential:", err);
     }
-  }).catch(err => {
-    hide('#active');
-    console.log(err.toString());
-    showErrorMsg(`An error occurred during Assertion request [${err.toString()}]`);
-  });
+
+    // we now have a new credential! We now need to encode the byte arrays
+    // in the credential into strings, for posting to our server.
+    const newAssertionForServer = transformNewAssertionForServer(credential);
+
+    // post the transformed credential data to the server for validation
+    // and storing the public key
+    let assertionValidationResponse;
+    try {
+        assertionValidationResponse = await postNewAssertionToServer(newAssertionForServer);
+    } catch (err) {
+        return console.error("Server validation of credential failed:", err);
+    }
+    
+    // reload the page after a successful result
+    window.location.reload();
 }
 
-function strToBin(str) {
-  return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+/**
+ * Get PublicKeyCredentialRequestOptions for this user from the server
+ * formData of the registration form
+ * @param {FormData} formData 
+ */
+const getCredentialRequestOptionsFromServer = async (formData) => {
+    return await fetch_json(
+        "/webauthn_begin_assertion",
+        {
+            method: "POST",
+            body: formData
+        }
+    );
 }
 
-function binToStr(bin) {
-  return btoa(new Uint8Array(bin).reduce(
-    (s, byte) => s + String.fromCharCode(byte), ''
-  ));
+const transformCredentialRequestOptions = (credentialRequestOptionsFromServer) => {
+    let {challenge, allowCredentials} = credentialRequestOptionsFromServer;
+
+    challenge = Uint8Array.from(
+        atob(challenge), c => c.charCodeAt(0));
+
+    allowCredentials = allowCredentials.map(credentialDescriptor => {
+        let {id} = credentialDescriptor;
+        id = id.replace(/\_/g, "/").replace(/\-/g, "+");
+        id = Uint8Array.from(atob(id), c => c.charCodeAt(0));
+        return Object.assign({}, credentialDescriptor, {id});
+    });
+
+    const transformedCredentialRequestOptions = Object.assign(
+        {},
+        credentialRequestOptionsFromServer,
+        {challenge, allowCredentials});
+
+    return transformedCredentialRequestOptions;
+};
+
+
+/**
+ * Get PublicKeyCredentialRequestOptions for this user from the server
+ * formData of the registration form
+ * @param {FormData} formData 
+ */
+const getCredentialCreateOptionsFromServer = async (formData) => {
+    return await fetch_json(
+        "/webauthn_begin_activate",
+        {
+            method: "POST",
+            body: formData
+        }
+    );
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  let hiddens = Array.from(document.querySelectorAll('.hidden'));
-  for (let hidden of hiddens) {
-    hidden.style.display = 'none';
-    hidden.classList.remove('hidden');
-  }
-  if (navigator.credentials && navigator.credentials.create) {
-    fetchCredentials();
-  } else {
-    showErrorMsg('Your browser doesn\'t support WebAuthn');
-    fetchCredentials();
-  }
-});
+/**
+ * Transforms items in the credentialCreateOptions generated on the server
+ * into byte arrays expected by the navigator.credentials.create() call
+ * @param {Object} credentialCreateOptionsFromServer 
+ */
+const transformCredentialCreateOptions = (credentialCreateOptionsFromServer) => {
+    let {challenge, user} = credentialCreateOptionsFromServer;
+    user.id = Uint8Array.from(
+        atob(credentialCreateOptionsFromServer.user.id), c => c.charCodeAt(0));
 
-window.addEventListener('load', () => {
-  onClick('#credential-button', registerNewCredential);
-  onClick('#platform-button', registerPlatformAuthenticator);
-  onClick('#authenticate-button', getAssertion);
-  onClick('#isuvpaa-button', isUVPAA);
+    challenge = Uint8Array.from(
+        atob(credentialCreateOptionsFromServer.challenge), c => c.charCodeAt(0));
+    
+    const transformedCredentialCreateOptions = Object.assign(
+            {}, credentialCreateOptionsFromServer,
+            {challenge, user});
+    return transformedCredentialCreateOptions;
+}
+
+
+
+/**
+ * AUTHENTICATION FUNCTIONS
+ */
+
+
+/**
+ * Callback executed after submitting login form
+ * @param {Event} e 
+ */
+const didClickLogin = async (e) => {
+    e.preventDefault();
+    // gather the data in the form
+    const form = document.querySelector('#login-form');
+    const formData = new FormData(form);
+
+    // post the login data to the server to retrieve the PublicKeyCredentialRequestOptions
+    let credentialCreateOptionsFromServer;
+    try {
+        credentialRequestOptionsFromServer = await getCredentialRequestOptionsFromServer(formData);
+    } catch (err) {
+        return console.error("Error when getting request options from server:", err);
+    }
+
+    // convert certain members of the PublicKeyCredentialRequestOptions into
+    // byte arrays as expected by the spec.    
+    const transformedCredentialRequestOptions = transformCredentialRequestOptions(
+        credentialRequestOptionsFromServer);
+
+    // request the authenticator to create an assertion signature using the
+    // credential private key
+    let assertion;
+    try {
+        assertion = await navigator.credentials.get({
+            publicKey: transformedCredentialRequestOptions,
+        });
+    } catch (err) {
+        return console.error("Error when creating credential:", err);
+    }
+
+    // we now have an authentication assertion! encode the byte arrays contained
+    // in the assertion data as strings for posting to the server
+    const transformedAssertionForServer = transformAssertionForServer(assertion);
+
+    // post the assertion to the server for verification.
+    let response;
+    try {
+        response = await postAssertionToServer(transformedAssertionForServer);
+    } catch (err) {
+        return console.error("Error when validating assertion on server:", err);
+    }
+
+    window.location.reload();
+};
+
+/**
+ * Transforms the binary data in the credential into base64 strings
+ * for posting to the server.
+ * @param {PublicKeyCredential} newAssertion 
+ */
+const transformNewAssertionForServer = (newAssertion) => {
+    const attObj = new Uint8Array(
+        newAssertion.response.attestationObject);
+    const clientDataJSON = new Uint8Array(
+        newAssertion.response.clientDataJSON);
+    const rawId = new Uint8Array(
+        newAssertion.rawId);
+    
+    const registrationClientExtensions = newAssertion.getClientExtensionResults();
+
+    return {
+        id: newAssertion.id,
+        rawId: b64enc(rawId),
+        type: newAssertion.type,
+        attObj: b64enc(attObj),
+        clientData: b64enc(clientDataJSON),
+        registrationClientExtensions: JSON.stringify(registrationClientExtensions)
+    };
+}
+
+/**
+ * Posts the new credential data to the server for validation and storage.
+ * @param {Object} credentialDataForServer 
+ */
+const postNewAssertionToServer = async (credentialDataForServer) => {
+    const formData = new FormData();
+    Object.entries(credentialDataForServer).forEach(([key, value]) => {
+        formData.set(key, value);
+    });
+    
+    return await fetch_json(
+        "/verify_credential_info", {
+        method: "POST",
+        body: formData
+    });
+}
+
+/**
+ * Encodes the binary data in the assertion into strings for posting to the server.
+ * @param {PublicKeyCredential} newAssertion 
+ */
+const transformAssertionForServer = (newAssertion) => {
+    const authData = new Uint8Array(newAssertion.response.authenticatorData);
+    const clientDataJSON = new Uint8Array(newAssertion.response.clientDataJSON);
+    const rawId = new Uint8Array(newAssertion.rawId);
+    const sig = new Uint8Array(newAssertion.response.signature);
+    const assertionClientExtensions = newAssertion.getClientExtensionResults();
+
+    return {
+        id: newAssertion.id,
+        rawId: b64enc(rawId),
+        type: newAssertion.type,
+        authData: b64RawEnc(authData),
+        clientData: b64RawEnc(clientDataJSON),
+        signature: hexEncode(sig),
+        assertionClientExtensions: JSON.stringify(assertionClientExtensions)
+    };
+};
+
+/**
+ * Post the assertion to the server for validation and logging the user in. 
+ * @param {Object} assertionDataForServer 
+ */
+const postAssertionToServer = async (assertionDataForServer) => {
+    const formData = new FormData();
+    Object.entries(assertionDataForServer).forEach(([key, value]) => {
+        formData.set(key, value);
+    });
+    
+    return await fetch_json(
+        "/verify_assertion", {
+        method: "POST",
+        body: formData
+    });
+}
+
+
+document.addEventListener("DOMContentLoaded", e => {
+    document.querySelector('#register').addEventListener('click', didClickRegister);
+    document.querySelector('#login').addEventListener('click', didClickLogin);
 });

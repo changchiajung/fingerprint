@@ -7,9 +7,9 @@ from django.template import RequestContext
 from django.conf import settings
 from django.http import JsonResponse
 import random,string
-import webauthn
+import webauthn.webauthn as webauthn
 
-RP_ID = 'duosecurity.com'
+RP_ID = 'localhost'
 
 def log_user_in(request,username):
     from django.contrib.auth.models import User
@@ -69,7 +69,7 @@ def webauthn_begin_activate(request):
     username = request.POST.get('register_username')
     display_name = request.POST.get('register_display_name')
     rp_name = "Duo Security"
-    challenge = generate_challenge(32)
+    challenge = generate_challenge(43)
     ukey = generate_ukey()
 
 
@@ -77,7 +77,9 @@ def webauthn_begin_activate(request):
         challenge, rp_name, RP_ID, ukey, username, display_name,
         'https://chendin.com')
     print(make_credential_options.registration_dict)
-    return JsonResponse(make_credential_options.registration_dict)
+    temp = make_credential_options.registration_dict
+    temp['attestation']='indirect'
+    return JsonResponse(temp)
 def generate_challenge(challenge_len):
     return ''.join([
         random.SystemRandom().choice(string.ascii_letters + string.digits)

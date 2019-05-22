@@ -18,7 +18,7 @@ from django.urls import path
 from django.conf.urls import include, url
 #import mfa.TrustDevice
 import mfa
-import mfa.TrustedDevice
+import mfa
 from auth.views import check,index,webauthn_begin_activate
 from . import FIDO2
 urlpatterns = [
@@ -29,6 +29,7 @@ urlpatterns = [
     path("index/login",check),
     path("finger",index),
     path("webauthn_begin_activate",webauthn_begin_activate),
+    path("verify_credential_info",check),
     url(r'fido2/$', FIDO2.start, name="start_fido2"),
     url(r'fido2/auth', FIDO2.auth, name="fido2_auth"),
     url(r'fido2/begin_auth', FIDO2.authenticate_begin, name="fido2_begin_auth"),
