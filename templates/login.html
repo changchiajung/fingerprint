@@ -1,0 +1,31 @@
+<html>
+    {% load static %}
+    <script src="{% static 'js/base64.js' %}"></script>
+    <script src="{% static 'js/webauthn.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <title>WebAuthn Test</title>
+    <body>
+        <h1>WebAuthn Test</h1>
+            <h2>Register</h2>
+            <form id="register-form" name="register" method="get">
+                <label for="register_username">Username:</label>
+                <input name="register_username"></input>
+                <label for="register_display_name">Display Name:</label>
+                <input name="register_display_name"></input>
+                <button id="register" type="submit">Register with WebAuthn</button>
+            </form>
+
+            <hr></hr>
+
+            <h2>Log In</h2>
+            <form id="login-form" name="login" method="get">
+                <label for="login_username">Username:</label>
+                <input name="login_username"></input>
+                <button id="login" type="submit">Log in with WebAuthn</button>
+            </form>
+        <button id="credential-button">credential-button</button>
+        <button id="platform-button">platform-button</button>
+        <button id="authenticate-button">authenticate-button</button>
+        <button id="isuvpaa-button">isuvpaa-button</button>
+    </body>
+</html>
