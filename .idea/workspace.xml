@@ -12,11 +12,13 @@
     <session id="-1752953594">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="4" />
-          <entry key="project.open.time.0" value="1" />
+          <entry key="project.closed" value="7" />
+          <entry key="project.open.time.0" value="2" />
           <entry key="project.open.time.1" value="1" />
+          <entry key="project.open.time.6" value="1" />
           <entry key="project.open.time.8" value="2" />
-          <entry key="project.opened" value="4" />
+          <entry key="project.open.time.9" value="1" />
+          <entry key="project.opened" value="7" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -41,14 +43,14 @@
         <counts>
           <entry key="html" value="180" />
           <entry key="js" value="264" />
-          <entry key="py" value="716" />
+          <entry key="py" value="732" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="HTML" value="180" />
           <entry key="JavaScript" value="264" />
-          <entry key="Python" value="716" />
+          <entry key="Python" value="732" />
         </counts>
       </usages-collector>
     </session>
@@ -58,7 +60,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/static/js/webauthn.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3408">
+            <state relative-caret-position="5016">
               <caret line="264" column="30" selection-start-line="264" selection-start-column="6" selection-end-line="264" selection-end-column="30" />
             </state>
           </provider>
@@ -67,7 +69,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/finger/settings.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
+            <state relative-caret-position="855">
               <caret line="45" column="18" selection-start-line="45" selection-start-column="18" selection-end-line="45" selection-end-column="18" />
             </state>
           </provider>
@@ -76,7 +78,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/finger/FIDO2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="19">
+            <state relative-caret-position="247">
               <caret line="13" column="46" selection-start-line="13" selection-start-column="46" selection-end-line="13" selection-end-column="46" />
             </state>
           </provider>
@@ -103,8 +105,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/finger/urls.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="76">
-              <caret line="17" column="41" lean-forward="true" selection-start-line="17" selection-start-column="41" selection-end-line="17" selection-end-column="41" />
+            <state relative-caret-position="19">
+              <caret line="17" column="41" selection-start-line="17" selection-start-column="41" selection-end-line="17" selection-end-column="41" />
             </state>
           </provider>
         </entry>
@@ -112,11 +114,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/authn/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
-              <caret line="19" column="44" lean-forward="true" selection-start-line="19" selection-start-column="44" selection-end-line="19" selection-end-column="44" />
+            <state relative-caret-position="3401">
+              <caret line="191" column="47" selection-start-line="191" selection-start-column="43" selection-end-line="191" selection-end-column="47" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
-                <marker date="1558676307050" expanded="true" signature="6009:7127" ph="..." />
+                <marker date="1558696533481" expanded="true" signature="6182:7252" ph="..." />
               </folding>
             </state>
           </provider>
@@ -129,13 +131,18 @@
       <find>Error cre</find>
       <find>publicKeyCredentialCreateOptions</find>
       <find>PublicKeyCredentialCreateOptions</find>
-      <find>form</find>
       <find>publicKeyCredentialCreat</find>
       <find>authen</find>
       <find>transformCredentialCreateOptions</find>
       <find>postNewAssertionToServer</find>
       <find>webauthn_begin_assertion</find>
+      <find>registration_response</find>
+      <find>session</find>
+      <find>form</find>
     </findStrings>
+    <replaceStrings>
+      <replace>request.session</replace>
+    </replaceStrings>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -234,6 +241,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2494043" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -300,17 +308,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/auth/models.py" />
     <entry file="file://$PROJECT_DIR$/auth/views.py" />
-    <entry file="file://$PROJECT_DIR$/templates/login.html">
+    <entry file="file://$PROJECT_DIR$/static/js/webauthn.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="247">
-          <caret line="13" column="52" selection-start-line="13" selection-start-column="52" selection-end-line="13" selection-end-column="52" />
+        <state relative-caret-position="5016">
+          <caret line="264" column="30" selection-start-line="264" selection-start-column="6" selection-end-line="264" selection-end-column="30" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/finger/settings.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
+        <state relative-caret-position="855">
           <caret line="45" column="18" selection-start-line="45" selection-start-column="18" selection-end-line="45" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/finger/FIDO2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="247">
+          <caret line="13" column="46" selection-start-line="13" selection-start-column="46" selection-end-line="13" selection-end-column="46" />
         </state>
       </provider>
     </entry>
@@ -321,34 +336,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/finger/FIDO2.py">
+    <entry file="file://$PROJECT_DIR$/templates/login.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19">
-          <caret line="13" column="46" selection-start-line="13" selection-start-column="46" selection-end-line="13" selection-end-column="46" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/js/webauthn.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3408">
-          <caret line="264" column="30" selection-start-line="264" selection-start-column="6" selection-end-line="264" selection-end-column="30" />
+        <state relative-caret-position="247">
+          <caret line="13" column="52" selection-start-line="13" selection-start-column="52" selection-end-line="13" selection-end-column="52" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/finger/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="76">
-          <caret line="17" column="41" lean-forward="true" selection-start-line="17" selection-start-column="41" selection-end-line="17" selection-end-column="41" />
+        <state relative-caret-position="19">
+          <caret line="17" column="41" selection-start-line="17" selection-start-column="41" selection-end-line="17" selection-end-column="41" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/authn/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="19" column="44" lean-forward="true" selection-start-line="19" selection-start-column="44" selection-end-line="19" selection-end-column="44" />
+        <state relative-caret-position="3401">
+          <caret line="191" column="47" selection-start-line="191" selection-start-column="43" selection-end-line="191" selection-end-column="47" />
           <folding>
             <element signature="e#0#35#0" expanded="true" />
-            <marker date="1558676307050" expanded="true" signature="6009:7127" ph="..." />
+            <marker date="1558696533481" expanded="true" signature="6182:7252" ph="..." />
           </folding>
         </state>
       </provider>

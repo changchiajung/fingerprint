@@ -15,7 +15,6 @@ import sys
 RP_ID = 'localhost'
 ORIGIN = 'https://localhost:8000'
 TRUST_ANCHOR_DIR = 'trusted_attestation_roots'
-session={}
 def log_user_in(request,username):
     from django.contrib.auth.models import User
     user=User.objects.get(username=username)
@@ -73,18 +72,18 @@ def webauthn_begin_activate(request):
     rp_name = "Duo Security"
     challenge = generate_challenge(43)
     ukey = generate_ukey()
-    if 'register_ukey' in session:
-        del session['register_ukey']
-    if 'register_username' in session:
-        del session['register_username']
-    if 'register_display_name' in session:
-        del session['register_display_name']
-    if 'challenge' in session:
-        del session['challenge']
-    session['register_username'] = username
-    session['register_display_name'] = display_name
-    session['challenge'] = challenge
-    session['register_ukey'] = ukey
+    if 'register_ukey' in request.session:
+        del request.session['register_ukey']
+    if 'register_username' in request.session:
+        del request.session['register_username']
+    if 'register_display_name' in request.session:
+        del request.session['register_display_name']
+    if 'challenge' in request.session:
+        del request.session['challenge']
+    request.session['register_username'] = username
+    request.session['register_display_name'] = display_name
+    request.session['challenge'] = challenge
+    request.session['register_ukey'] = ukey
 
     make_credential_options = webauthn.WebAuthnMakeCredentialOptions(
         challenge, rp_name, RP_ID, ukey, username, display_name,
@@ -108,11 +107,11 @@ def webauthn_begin_assertion(request):
     return JsonResponse(webauthn_assertion_options.assertion_dict)
 
 def verify_credential_info(request):
-    challenge = session['challenge']
-    username = session['register_username']
-    display_name = session['register_display_name']
-    ukey = session['register_ukey']
-    registration_response = request.form
+    challenge = request.session['challenge']
+    username = request.session['register_username']
+    display_name = request.session['register_display_name']
+    ukey = request.session['register_ukey']
+    registration_response = request.POST
     trust_anchor_dir = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), TRUST_ANCHOR_DIR)
     trusted_attestation_cert_required = True
@@ -158,8 +157,8 @@ def verify_credential_info(request):
     return JsonResponse({'success': 'User successfully registered.'})
 
 def verify_assertion(request):
-    challenge = session['challenge']
-    assertion_response = request.form
+    challenge = request.session['challenge']
+    assertion_response = request.POST
     credential_id = assertion_response.get('id')
 
     user = User_T.get(credential_id=credential_id)
