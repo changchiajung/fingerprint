@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'mfa',
     'django_mfa',
     'django_tables2',
+    'authn',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

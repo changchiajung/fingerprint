@@ -9,10 +9,10 @@ import simplejson
 from fido2 import cbor
 from django.http import HttpResponse
 from django.conf import settings
-from auth.models import *
+from authn.models import *
 from fido2.utils import websafe_decode,websafe_encode
 from fido2.ctap2 import AttestedCredentialData
-from auth.views import login
+from authn.views import login
 import datetime
 from django.utils import timezone
 
