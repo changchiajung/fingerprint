@@ -69,8 +69,8 @@ def index(request):
 def webauthn_begin_activate(request):
     username = request.POST.get('register_username')
     display_name = request.POST.get('register_display_name')
-    rp_name = "Duo Security"
-    challenge = generate_challenge(43)
+    rp_name = "localhost"
+    challenge = generate_challenge(32)
     ukey = generate_ukey()
     if 'register_ukey' in request.session:
         del request.session['register_ukey']
@@ -88,16 +88,21 @@ def webauthn_begin_activate(request):
     make_credential_options = webauthn.WebAuthnMakeCredentialOptions(
         challenge, rp_name, RP_ID, ukey, username, display_name,
         'https://chendin.com')
-    print(make_credential_options.registration_dict)
     temp = make_credential_options.registration_dict
     temp['attestation']='indirect'
     return JsonResponse(temp)
 
 
 def webauthn_begin_assertion(request):
-    username = request.POST.get('register_username')
+    username = request.POST.get('login_username')
     challenge = generate_challenge(32)
     user = User_T.objects.get(username=username)
+    if 'challenge' in request.session:
+        del request.session['challenge']
+
+    challenge = generate_challenge(32)
+
+    request.session['challenge'] = challenge
     webauthn_user = webauthn.WebAuthnUser(
         user.ukey, user.username, user.display_name, user.icon_url,
         user.credential_id, user.pub_key, user.sign_count, user.rp_id)
@@ -157,7 +162,7 @@ def verify_credential_info(request):
     return JsonResponse({'success': 'User successfully registered.'})
 
 def verify_assertion(request):
-    challenge = request.session['challenge']
+    challenge = request.session.get('challenge',False)
     assertion_response = request.POST
     credential_id = assertion_response.get('id')
 
@@ -182,7 +187,7 @@ def verify_assertion(request):
         return JsonResponse({'fail': 'Assertion failed. Error: {}'.format(e)})
 
     # Update counter.
-    user.sign_count +=1
+    user.sign_count = sign_count
     user.save()
 
     login(request,user)
